@@ -15,24 +15,46 @@ struct HistoryView: View {
                                title: "No sessions yet",
                                message: "Finish a workout and it will show up here.")
                 } else {
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(completed) { session in
-                                NavigationLink {
-                                    SessionDetailView(session: session)
-                                } label: {
-                                    SessionRow(session: session)
+                    List {
+                        ForEach(completed) { session in
+                            NavigationLink {
+                                SessionDetailView(session: session)
+                            } label: {
+                                SessionRow(session: session)
+                            }
+                            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) { delete(session) } label: {
+                                    Label("Delete", systemImage: "trash")
                                 }
-                                .buttonStyle(.plain)
                             }
                         }
-                        .padding(16)
+                        .onDelete(perform: deleteAt)
                     }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
             }
             .background(Theme.bg)
             .navigationTitle("History")
+            .toolbar {
+                if !completed.isEmpty {
+                    EditButton().tint(Theme.accent)
+                }
+            }
         }
+    }
+
+    private func delete(_ session: WorkoutSession) {
+        ctx.delete(session)
+        try? ctx.save()
+    }
+
+    private func deleteAt(_ offsets: IndexSet) {
+        for index in offsets { ctx.delete(completed[index]) }
+        try? ctx.save()
     }
 }
 

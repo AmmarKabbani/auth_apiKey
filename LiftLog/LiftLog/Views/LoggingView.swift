@@ -14,6 +14,7 @@ struct LoggingView: View {
     @State private var previous: [String: [Int: SetValue]] = [:]
     @State private var current = 0
     @State private var startTime = Date()
+    @State private var showFinishConfirm = false
 
     // Rest timer state
     @State private var restRemaining = 0
@@ -59,6 +60,16 @@ struct LoggingView: View {
 
             bottomBar
         }
+        .confirmationDialog("Finish session?",
+                            isPresented: $showFinishConfirm, titleVisibility: .visible) {
+            Button("Finish", role: .none) { finish() }
+            Button("Keep going", role: .cancel) {}
+        } message: {
+            let done = session.completedSets.count
+            Text(done == 0
+                 ? "You haven't completed any sets yet — finishing will discard this session."
+                 : "You've logged \(done) set\(done == 1 ? "" : "s"). Save and finish this session?")
+        }
     }
 
     // MARK: - Bars
@@ -77,7 +88,7 @@ struct LoggingView: View {
                     .font(.caption2).foregroundStyle(Theme.textSecond)
             }
             Spacer()
-            Button { finish() } label: {
+            Button { showFinishConfirm = true } label: {
                 Text("Finish").font(.headline.weight(.semibold)).foregroundStyle(Theme.accent)
             }
         }
@@ -117,7 +128,7 @@ struct LoggingView: View {
                             .labelStyle(.titleAndIcon)
                     }
                 } else {
-                    Button { finish() } label: {
+                    Button { showFinishConfirm = true } label: {
                         Label("Done", systemImage: "checkmark")
                     }
                     .foregroundStyle(Theme.accent)
